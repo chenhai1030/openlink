@@ -1,211 +1,65 @@
-# OpenLink
+# OpenLink (TypeScript-Version)
 
-让网页版 AI（Gemini、通义千问、ChatGPT、AI Studio 等）直接访问你的本地文件系统和执行命令。
+This project is a TypeScript re-implementation of the Go-based `openlink` server.
 
-## 工作原理
+## Description
 
-```
-AI 网页 → 输出 <tool> 指令 → Chrome 扩展拦截 → 本地 Go 服务执行 → 结果返回 AI
-```
+The server provides a set of tools that can be executed via an HTTP API. It is designed to work within a sandboxed directory to ensure safety. Authentication is handled via a bearer token.
 
-## 快速安装
+## Setup
 
-### 第一步：安装本地服务
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-**macOS / Linux**
+## Running the Server
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/afumu/openlink/main/install.sh | sh
-```
-
-**Windows（PowerShell）**
-
-```powershell
-irm https://raw.githubusercontent.com/afumu/openlink/main/install.ps1 | iex
-```
-
-安装完成后运行：
+### Production Mode
 
 ```bash
-openlink
+npm start
 ```
 
-服务默认监听 `http://127.0.0.1:39527`，启动后会输出认证 URL。
-
-### 第二步：安装 Chrome 扩展
-
-> Chrome Web Store 版本即将上线，目前请手动安装。
-
-1. 下载最新 [Release](https://github.com/afumu/openlink/releases/latest) 中的 `extension.zip` 并解压
-2. 打开 Chrome，访问 `chrome://extensions/`
-3. 开启右上角「开发者模式」
-4. 点击「加载已解压的扩展程序」，选择解压后的目录
-
-### 第三步：连接扩展与服务
-
-1. 点击浏览器工具栏中的 OpenLink 图标
-2. 将终端输出的认证 URL 粘贴到「API 地址」输入框
-3. 点击保存
-
-### 第四步：开始使用
-
-访问 [Gemini](https://gemini.google.com)、[通义千问](https://qwen.ai)、[ChatGPT](https://chatgpt.com)、[AI Studio](https://aistudio.google.com) 或 [Arena](https://arena.ai)，点击页面右下角的「🔗 初始化」按钮，AI 即可开始使用本地工具。
-
----
-
-## 推荐平台
-
-> **目前测试效果最佳的平台是 [Google AI Studio](https://aistudio.google.com)**
->
-> AI Studio 原生支持配置系统提示词（System Instructions），点击「🔗 初始化」后会自动将工具说明写入系统提示词，无需占用对话上下文，工具调用更稳定、更准确。
->
-> 其他平台通过对话消息注入提示词，效果因模型而异。
-
-## 支持的 AI 平台
-
-| 平台 | 状态 | 备注 |
-|------|------|------|
-| Google AI Studio | ✅ | 推荐，原生支持系统提示词 |
-| Google Gemini | ✅ | |
-| 通义千问 (Qwen) | ✅ | |
-| ChatGPT | ✅ | |
-| Arena.ai | ✅ | |
-
----
-
-## 可用工具
-
-| 工具 | 说明 |
-|------|------|
-| `exec_cmd` | 执行 Shell 命令 |
-| `list_dir` | 列出目录内容 |
-| `read_file` | 读取文件内容（支持分页） |
-| `write_file` | 写入文件内容（支持追加/覆盖） |
-| `glob` | 按文件名模式搜索文件 |
-| `grep` | 正则搜索文件内容 |
-| `edit` | 精确替换文件中的字符串 |
-| `web_fetch` | 获取网页内容 |
-| `question` | 向用户提问并等待回答 |
-| `skill` | 加载自定义 Skill |
-| `todo_write` | 写入待办事项 |
-
-## 输入框快捷补全
-
-在任意支持的 AI 平台输入框中，OpenLink 提供两种快捷触发：
-
-| 触发方式 | 效果 |
-|----------|------|
-| 输入 `/` | 弹出当前项目所有 Skills 列表，选择后自动插入工具调用 XML |
-| 输入 `@` | 弹出工作目录文件路径补全列表，选择后插入文件路径 |
-
-**操作方式：**
-- ↑ / ↓ 键盘导航
-- Enter 确认选择
-- Escape 或点击外部关闭
-
----
-
-## Skills 扩展
-
-Skills 是放在本地的 Markdown 文件，AI 可以按需加载，用于扩展特定领域的能力（如部署流程、代码规范、项目约定等）。
-
-### Skills 目录（按优先级）
-
-OpenLink 会依次扫描以下目录，同名 Skill 以先找到的为准：
-
-```
-<工作目录>/.skills/
-<工作目录>/.openlink/skills/
-<工作目录>/.agent/skills/
-<工作目录>/.claude/skills/
-~/.openlink/skills/
-~/.agent/skills/
-~/.claude/skills/
-```
-
-### 创建 Skill
-
-在任意 Skills 目录下创建子目录，并在其中放置 `SKILL.md`：
-
-```
-.skills/
-└── deploy/
-    └── SKILL.md
-```
-
-`SKILL.md` 格式：
-
-```markdown
----
-name: deploy
-description: 项目部署流程
----
-
-## 部署步骤
-...
-```
-
-AI 通过 `skill` 工具加载：
-
-```
-<tool name="skill">
-  <parameter name="skill">deploy</parameter>
-</tool>
-```
-
----
-
-## 安全机制
-
-- **沙箱隔离**：所有文件操作限制在指定工作目录内
-- **危险命令拦截**：`rm -rf`、`sudo`、`curl` 等命令被屏蔽
-- **超时控制**：命令执行默认 60 秒超时
-
----
-
-## 命令行参数
+### Development Mode (with hot-reloading)
 
 ```bash
-openlink [选项]
-
-选项：
-  -dir string    工作目录（默认：当前目录）
-  -port int      监听端口（默认：39527）
-  -timeout int   命令超时秒数（默认：60）
+npm run dev
 ```
 
----
+The server supports the following command-line arguments:
 
-## 从源码构建
+- `--dir=<path>`: The working directory (sandbox). Defaults to the current directory.
+- `--port=<port>`: The port to listen on. Defaults to `39527`.
+- `--timeout=<seconds>`: The timeout for command execution. Defaults to `60`.
 
-详见 [docs/development.md](docs/development.md)
+Example:
+```bash
+npm start -- --dir=/path/to/your/workspace --port=8080
+```
 
----
+## Authentication
 
-## 问题反馈
+On the first run, a `settings.json` file will be created in the `.config` directory of the project. This file contains the authentication token.
 
-[提交 Issue](https://github.com/afumu/openlink/issues)
+The server will print an authentication URL to the console. Use this URL or the token to configure your client.
 
-## 交流群
+All API requests (except for `/health` and `/auth`) must include the `Authorization` header:
 
-欢迎加微信交流，备注 `openlink`：
+`Authorization: Bearer <your-token>`
 
-**微信号：afumudev**
+## Available Tools
 
----
+The following tools are available via the `/exec` endpoint:
 
-## 致谢
-
-本项目在开发过程中参考了以下优秀的开源项目：
-
-- [opencode](https://github.com/anomalyco/opencode)
-- [MCP-SuperAssistant](https://github.com/srbhptl39/MCP-SuperAssistant)
-- [learn-claude-code](https://github.com/shareAI-lab/learn-claude-code)
-
-感谢这些项目的作者和贡献者。
-
----
-
-## 免责声明
-
-本项目仅供学习和研究使用，**严禁用于任何商业用途**。
+- `ExecCmd`: Executes a shell command.
+- `ListDir`: Lists directory contents.
+- `ReadFile`: Reads a file.
+- `WriteFile`: Writes to a file.
+- `Glob`: Finds files using a glob pattern.
+- `Grep`: Searches for a pattern in files.
+- `Edit`: Replaces a string in a file.
+- `WebFetch`: Fetches content from a URL.
+- `Question`: Asks a question (for interactive scenarios).
+- `Skill`: Lists available skills.
+- `TodoWrite`: Appends a task to `TODO.md`.
